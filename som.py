@@ -1,3 +1,4 @@
+import csv
 import math
 import numpy
 
@@ -50,5 +51,68 @@ class SOM:
         najblizszy.etykieta = etykieta
 
 
+zrodla = [1, .75, .50, .0]
 
 
+def dane_treningowe(limit=100):
+    dane = []
+    for d in range(3000, 15000, 3000):
+        for w in range(1500, int(d * .55), 500):
+            for z in range(0, 4):
+                t = (w / d, zrodla[z],)
+                print(t)
+                dane.append(t)
+    return dane
+
+
+def rysuj_wykres(som, title=None, filename=None):
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    markers = ['o', 'd', 's']
+    for neuron in som.neuronki:
+        plt.scatter(*tuple(neuron.dane), marker=markers[int(neuron.etykieta)])
+    plt.xlabel("Stosunek wydatków i raty do dochodu")
+    plt.ylabel("Źródło dochodu")
+    if title:
+        plt.title(title)
+    if filename:
+        plt.savefig(filename)
+
+
+def wczytaj_wnioski(nazwa='wnioski.csv'):
+    with open(nazwa, 'r') as plik:
+        dane = [wiersz for wiersz in csv.DictReader(plik)]
+    return dane
+
+
+def zapisz_oceny(oceny, nazwa='oceny.csv'):
+    with open(nazwa, 'w') as plik:
+        w = csv.DictWriter(plik, fieldnames=[*oceny[0].keys()])
+        w.writeheader()
+        for ocena in oceny:
+            w.writerow(ocena)
+
+
+def ocena_ryzyka(som):
+    oceny = []
+    dane = wczytaj_wnioski()
+    for wniosek in dane:
+        dochod, wydatki, rata, zrodlo = wniosek.values()
+        wygrany = som.znajdz_najblizszy(((int(wydatki) + int(rata)) / int(dochod), int(zrodlo) / 100,))
+        oceny.append({**wniosek, 'ocena': wygrany.etykieta})
+    if len(oceny):
+        zapisz_oceny(oceny)
+
+
+if __name__ == '__main__':
+    DANE = dane_treningowe()
+    
+    som = SOM(liczba_neuronow=2)
+    rysuj_wykres(som, "Inicjacja sieci: %s" % len(som.neuronki), 'som_init.png')
+    som.trening(dane=DANE, iteracji=10000)
+    rysuj_wykres(som, "Sieć po treningu: %s" % len(som.neuronki), 'som_trening.png')
+
+    som.oznacz((0.10, 1), "ZGODA")
+    som.oznacz((1, 0), "ODMOWA")
+
+    ocena_ryzyka(som)
