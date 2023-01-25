@@ -65,6 +65,16 @@ def dane_treningowe(limit=100):
     return dane
 
 
+def gen_dane_treningowe(nazwa='trening.csv'):
+    dane = [[*numpy.random.sample(2)] for i in range(0,100)]
+    with open(nazwa, 'w') as plik:
+        w = csv.DictWriter(plik, fieldnames=('Wydatki', 'Dochod'))
+        w.writeheader()
+        for wiersz in dane:
+            w.writerow({'Wydatki': wiersz[0], 'Dochod': wiersz[1]})
+    return dane
+
+
 def rysuj_wykres(som, title=None, filename=None):
     import matplotlib.pyplot as plt
     fig = plt.figure()
@@ -105,8 +115,9 @@ def ocena_ryzyka(som):
 
 
 if __name__ == '__main__':
-    DANE = dane_treningowe()
-    
+    DANE = gen_dane_treningowe()
+    print(DANE)
+
     som = SOM(liczba_neuronow=2)
     rysuj_wykres(som, "Inicjacja sieci: %s" % len(som.neuronki), 'som_init.png')
     som.trening(dane=DANE, iteracji=10000)
