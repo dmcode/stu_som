@@ -30,14 +30,19 @@ class SOM:
     def __init__(self, liczba_neuronow, waga=0.2):
         self.liczba_neuronow = liczba_neuronow
         self.waga = waga
+        self.waga_s = waga / 10
         for i in range(self.liczba_neuronow):
             self.neuronki.append(Neuron(tuple(numpy.random.sample(2)), str(i)))
-        
+            # self.neuronki.append(Neuron((0,0), str(i)))
+
     def trening(self, dane, iteracji=100):
         for i in range(iteracji):
             for sygnal in dane:
                 najblizszy = self.znajdz_najblizszy(sygnal)
+                somsiady = self.znajdz_somsasiadow(neuron=najblizszy, odleglosc=(iteracji-i/iteracji))
                 najblizszy.skoryguj(sygnal, waga=self.waga)
+                for somsiad in somsiady:
+                    somsiad.skoryguj(sygnal, waga=self.waga_s)
     
     def znajdz_najblizszy(self, sygnal):
         odleglosci = []
@@ -46,23 +51,30 @@ class SOM:
         najblizszy, _ = min(odleglosci, key=lambda x: x[1])
         return najblizszy
 
+    def znajdz_somsasiadow(self, neuron, odleglosc):
+        somsiady = []
+        for n in self.neuronki:
+            if n.odleglosc(neuron) < odleglosc:
+                somsiady.append(n)
+        return somsiady
+
     def oznacz(self, sygnal, etykieta):
         najblizszy = self.znajdz_najblizszy(sygnal)
         najblizszy.etykieta = etykieta
 
 
-zrodla = [1, .75, .50, .0]
+# zrodla = [1, .75, .50, .0]
 
 
-def dane_treningowe(limit=100):
-    dane = []
-    for d in range(3000, 15000, 3000):
-        for w in range(1500, int(d * .55), 500):
-            for z in range(0, 4):
-                t = (w / d, zrodla[z],)
-                print(t)
-                dane.append(t)
-    return dane
+# def dane_treningowe(limit=100):
+#     dane = []
+#     for d in range(3000, 15000, 3000):
+#         for w in range(1500, int(d * .55), 500):
+#             for z in range(0, 4):
+#                 t = (w / d, zrodla[z],)
+#                 print(t)
+#                 dane.append(t)
+#     return dane
 
 
 def gen_dane_treningowe(nazwa='trening.csv'):
@@ -72,6 +84,12 @@ def gen_dane_treningowe(nazwa='trening.csv'):
         w.writeheader()
         for wiersz in dane:
             w.writerow({'Wydatki': wiersz[0], 'Dochod': wiersz[1]})
+    return dane
+
+
+def wczytaj_dane_treningowe(nazwa='trening.csv'):
+    with open(nazwa, 'r') as plik:
+        dane = [[float(v) for v in wiersz.values()] for wiersz in csv.DictReader(plik)]
     return dane
 
 
@@ -115,9 +133,9 @@ def ocena_ryzyka(som):
 
 
 if __name__ == '__main__':
-    DANE = gen_dane_treningowe()
-    print(DANE)
-
+    # DANE = gen_dane_treningowe()
+    DANE = wczytaj_dane_treningowe()
+    
     som = SOM(liczba_neuronow=2)
     rysuj_wykres(som, "Inicjacja sieci: %s" % len(som.neuronki), 'som_init.png')
     som.trening(dane=DANE, iteracji=10000)
