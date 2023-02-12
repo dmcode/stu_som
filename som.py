@@ -1,3 +1,6 @@
+"""
+Zadanie: Algorytm sieci samoorganizującej się.
+"""
 import csv
 import math
 import numpy
@@ -27,22 +30,21 @@ class Neuron:
 class SOM:
     neuronki = []
 
-    def __init__(self, liczba_neuronow, waga=0.2):
+    def __init__(self, liczba_neuronow, wsp_uczenia=0.2):
         self.liczba_neuronow = liczba_neuronow
-        self.waga = waga
-        self.waga_s = waga / 10
+        self.wsp_ucz = wsp_uczenia
+        self.wsp_ucz_s = wsp_uczenia / 10
         for i in range(self.liczba_neuronow):
             self.neuronki.append(Neuron(tuple(numpy.random.sample(2)), str(i)))
-            # self.neuronki.append(Neuron((0,0), str(i)))
 
     def trening(self, dane, iteracji=100):
         for i in range(iteracji):
             for sygnal in dane:
                 najblizszy = self.znajdz_najblizszy(sygnal)
                 somsiady = self.znajdz_somsasiadow(neuron=najblizszy, odleglosc=(iteracji-i/iteracji))
-                najblizszy.skoryguj(sygnal, waga=self.waga)
+                najblizszy.skoryguj(sygnal, waga=self.wsp_ucz)
                 for somsiad in somsiady:
-                    somsiad.skoryguj(sygnal, waga=self.waga_s)
+                    somsiad.skoryguj(sygnal, waga=self.wsp_ucz_s)
     
     def znajdz_najblizszy(self, sygnal):
         odleglosci = []
@@ -61,20 +63,6 @@ class SOM:
     def oznacz(self, sygnal, etykieta):
         najblizszy = self.znajdz_najblizszy(sygnal)
         najblizszy.etykieta = etykieta
-
-
-# zrodla = [1, .75, .50, .0]
-
-
-# def dane_treningowe(limit=100):
-#     dane = []
-#     for d in range(3000, 15000, 3000):
-#         for w in range(1500, int(d * .55), 500):
-#             for z in range(0, 4):
-#                 t = (w / d, zrodla[z],)
-#                 print(t)
-#                 dane.append(t)
-#     return dane
 
 
 def gen_dane_treningowe(nazwa='trening.csv'):
