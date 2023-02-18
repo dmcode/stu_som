@@ -11,7 +11,7 @@ class Neuron:
         self.dane = dane
         self.etykieta = etykieta
 
-    def  __iter__(self):
+    def __iter__(self):
         return self.dane.__iter__()
 
     def __str__(self):
@@ -38,14 +38,18 @@ class SOM:
             self.neuronki.append(Neuron(tuple(numpy.random.sample(2)), str(i)))
 
     def trening(self, dane, iteracji=100):
+        waga = self.wsp_ucz
+        waga_s = self.wsp_ucz_s
         for i in range(iteracji):
             for sygnal in dane:
                 najblizszy = self.znajdz_najblizszy(sygnal)
                 somsiady = self.znajdz_somsasiadow(neuron=najblizszy, odleglosc=(iteracji-i/iteracji))
-                najblizszy.skoryguj(sygnal, waga=self.wsp_ucz)
+                najblizszy.skoryguj(sygnal, waga=waga)
                 for somsiad in somsiady:
-                    somsiad.skoryguj(sygnal, waga=self.wsp_ucz_s)
-    
+                    somsiad.skoryguj(sygnal, waga=waga_s)
+            waga = waga * ((iteracji-i) / iteracji)
+            waga_s = waga / 10
+
     def znajdz_najblizszy(self, sygnal):
         odleglosci = []
         for neuron in self.neuronki:
@@ -126,7 +130,7 @@ if __name__ == '__main__':
     
     som = SOM(liczba_neuronow=2)
     rysuj_wykres(som, "Inicjacja sieci: %s" % len(som.neuronki), 'som_init.png')
-    som.trening(dane=DANE, iteracji=10000)
+    som.trening(dane=DANE, iteracji=100)
     rysuj_wykres(som, "Sieć po treningu: %s" % len(som.neuronki), 'som_trening.png')
 
     som.oznacz((0.10, 1), "ZGODA")
